@@ -1,0 +1,6 @@
+#ifndef _SCIOSENSE_UFM01_LIBRARY_H_
+#define _SCIOSENSE_UFM01_LIBRARY_H_
+
+#include "ufm01.h"
+
+#endif //_SCIOSENSE_UFM01_LIBRARY_H_

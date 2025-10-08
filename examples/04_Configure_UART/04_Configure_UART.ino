@@ -1,7 +1,7 @@
 /* **************************************************
 *
 *   Example Code for running ScioSense UFM01 on UART
-*       tested with Arduino UNO and ESP32
+*       tested with Arduino MEGA and ESP32
 *
 *  **************************************************
 */
@@ -10,24 +10,35 @@
 
 #include <ScioSense_UFM01.h>
 
-#define rxPin               16
-#define txPin               17
-#define uartBaudrateUfm01   2400
-#define uartConfigUfm01     SERIAL_8E1
+#ifdef ESP32
+    #define esp32RxPin          16
+    #define esp32TxPin          17
+#endif
+#define uartBaudrateUfm01       2400
+#define uartConfigUfm01         SERIAL_8E1
+#define ufm01FrequencyHz        4
+#define ufm01StartFlowLPerHr    1.5
 
 UFM01 ufm01;
 
 void PrintUfm01Error(uint16_t error);
 
+uint32_t waitTimeMs;
+
 void setup()
 {
     Serial.begin(9600);
     Serial.println("");
-    Serial.println("Starting UFM01 example 01_Basic_UART");
+    Serial.println("Starting UFM01 example 04_Configure_UART");
 
-    Serial2.begin(uartBaudrateUfm01, uartConfigUfm01, rxPin, txPin);
+    #ifdef ESP32
+      Serial2.begin(uartBaudrateUfm01, uartConfigUfm01, esp32RxPin, esp32TxPin);
+    #endif
+    #ifdef __AVR_ATmega2560__
+        Serial2.begin(uartBaudrateUfm01, uartConfigUfm01);
+    #endif
     ufm01.begin(&Serial2);
-
+      
     while (ufm01.init() == false)
     {
         Serial.println("Error -- The UFM01 is not connected.");
@@ -38,6 +49,11 @@ void setup()
     Serial.println(ufm01.getDeviceIdString());
     Serial.print("Software Version: ");
     Serial.println(ufm01.getSoftwareVersion());
+    
+    ufm01.setOperatingMode(UFM01_MEASUREMENT_MODE_PASSIVE);
+    ufm01.writeConfiguration(ufm01FrequencyHz, ufm01StartFlowLPerHr);
+    waitTimeMs = (uint32_t)( 1000 / ufm01FrequencyHz );
+    
     ufm01.clearAccumulatedFlow();
 }
 
@@ -61,7 +77,7 @@ void loop()
         }
     }
 
-    delay(1000);
+    delay(waitTimeMs);
 }
 
 void PrintUfm01Error(uint16_t error)

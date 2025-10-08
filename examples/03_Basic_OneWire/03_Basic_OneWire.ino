@@ -1,7 +1,7 @@
 /* ******************************************************
 *
 *   Example Code for running ScioSense UFM01 on One-Wire
-*              tested with Arduino UNO and ESP32
+*           tested with Arduino MEGA and ESP32
 *
 *  ******************************************************
 */
@@ -19,7 +19,7 @@ void setup(void)
 {
     Serial.begin(9600);
     Serial.println("");
-    Serial.println("Starting UFM01 example 01_Basic_OneWire");
+    Serial.println("Starting UFM01 example 03_Basic_OneWire");
 
     ufm01.begin(&oneWire);
 

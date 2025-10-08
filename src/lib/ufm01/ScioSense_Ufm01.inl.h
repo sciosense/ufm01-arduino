@@ -101,19 +101,9 @@ static inline Result Ufm01_Invoke(ScioSense_Ufm01* ufm01, Ufm01_Command command,
 {
     Result result;
 
-    if( ufm01->io.protocol == UFM01_PROTOCOL_ONE_WIRE )
-    {
-        memset(resultBuf, 0x12, sizeResponse)
-        size_t sizeData = sizeCommand - 1;
-        uint8_t address = command[0];
-        uint8_t data[sizeData];
-        memcpy(data, (command+1), sizeData);
-        result = Ufm01_Write(ufm01, address, data, sizeData);
-    }
-    else
-    {
-        result = Ufm01_Write(ufm01, 0, (uint8_t*)command, sizeCommand);
-    }
+    memset(resultBuf, 0, sizeResponse)
+    
+    result = Ufm01_Write(ufm01, 0, (uint8_t*)command, sizeCommand);
     
     if (result == RESULT_OK)
     {
@@ -425,7 +415,7 @@ static inline Result Ufm01_InvokeGetSensorDataOneWire( ScioSense_Ufm01* ufm01 )
 
 static inline Result Ufm01_InvokeWriteConfiguration(ScioSense_Ufm01* ufm01, Ufm01_Frequency acquisitionFrequency, uint32_t startFlowlitersPerHour)
 {
-    Result result;
+    Result result = RESULT_IO_ERROR;
 
     uint8_t startFlowDecilitresPerHourArray[UFM01_COMMAND_STARTUP_FLOW_RATE_LENGTH];
     Ufm01_EncodeDecimalNibbles(startFlowlitersPerHour, startFlowDecilitresPerHourArray, UFM01_COMMAND_STARTUP_FLOW_RATE_LENGTH);
@@ -498,20 +488,18 @@ static inline Result Ufm01_Reset(ScioSense_Ufm01* ufm01)
     ufm01->measurementMode                  = UFM01_MEASUREMENT_MODE_ACTIVE;
 
     clear();
-    result = Ufm01_InvokeReset( ufm01 );
 
-    wait(1200);
+    
+    result = Ufm01_InvokeReset( ufm01 );
     
     if (result != RESULT_OK)
     {
         // retry in case the sensor is coming from a power up
+        wait(800);
         clear();
         result = Ufm01_InvokeReset( ufm01 );
-        wait(1200);
     }
-
-    clear();
-
+    
     if ( result != RESULT_OK )
     {
         return result;
@@ -519,19 +507,13 @@ static inline Result Ufm01_Reset(ScioSense_Ufm01* ufm01)
 
     if ( ufm01->io.protocol == UFM01_PROTOCOL_UART )
     {
-
-        result = Ufm01_InvokePassiveMeasurement( ufm01 );
-
-        clear();
-
+        wait(2000);
+        result = Ufm01_Update( ufm01 );
+        
         if ( result == RESULT_OK )
         {
+            clear();
             result = Ufm01_InvokeGetSoftwareVersion( ufm01 );
-
-            if ( result == RESULT_OK )
-            {
-                result = Ufm01_InvokeGetSensorDataWithId( ufm01 );
-            }
         }
     }
 
@@ -585,6 +567,7 @@ static inline Result Ufm01_SetOperatingMode(ScioSense_Ufm01* ufm01, const Ufm01_
         {
             ufm01->measurementMode = mode;
         }
+        clear();
     }
 
     if ( ufm01->io.protocol == UFM01_PROTOCOL_ONE_WIRE )
@@ -609,9 +592,9 @@ static inline bool Ufm01_IsConnected(ScioSense_Ufm01* ufm01)
 {
     if ( ufm01->io.protocol == UFM01_PROTOCOL_UART )
     {
-        for( uint8_t i=0; i<UFM01_BUFFER_SOFTWARE_VERSION_LENGTH; i++ )
+        for( uint8_t i=0; i<UFM01_BUFFER_ID_LENGTH; i++ )
         {
-            if( ufm01->softwareVersionData[i] != 0 )
+            if( ufm01->deviceIdData[i] != 0 )
             {
                 return 1;
             }
@@ -620,7 +603,8 @@ static inline bool Ufm01_IsConnected(ScioSense_Ufm01* ufm01)
 
     if ( ufm01->io.protocol == UFM01_PROTOCOL_ONE_WIRE )
     {
-        return 1;
+        uint8_t dummyData[1];
+        return !Ufm01_Write(ufm01, 0, (uint8_t*)dummyData, 0);
     }
 
     return 0;
@@ -679,13 +663,13 @@ static inline float Ufm01_GetTemperatureDegC(ScioSense_Ufm01* ufm01)
 
 static inline uint8_t Ufm01_CalculateChecksum_Uart( uint8_t *val, uint8_t startCrcByte, uint8_t stopCrcByte )
 {
-    uint8_t CRC = 0x00;
+    uint8_t crc = 0x00;
 
     for( uint8_t i=startCrcByte; i<stopCrcByte; i++ )
     {
-        CRC += val[i];
+        crc += val[i];
     }
-    return CRC;
+    return crc;
 }
 
 static inline float Ufm01_InstantFlowToLitersPerHourUart(uint8_t* instantFlowData, uint8_t instantFlowFlag)
@@ -759,24 +743,24 @@ static inline float Ufm01_TemperatureToDegCOneWire(uint8_t* temperatureData)
 
 static inline uint8_t Ufm01_CalculateCrc8_OneWire(uint8_t *val, uint8_t length)
 {
-    uint8_t CRC = 0xFF;
+    uint8_t crc = 0xFF;
     uint8_t i,t;
     for( i=0; i<length; i++ )
     {
-        CRC ^= val[i];
+        crc ^= val[i];
         for( t=8; t>0; --t )
         {
-            if( CRC & 0x80 )
+            if( crc & 0x80 )
             {
-                CRC = (CRC<<1) ^ 0x31u;
+                crc = (crc<<1) ^ 0x31u;
             }
             else
             {
-                CRC = (CRC<<1);
+                crc = (crc<<1);
             }
         }
     }
-    return CRC;
+    return crc;
 }
 
 static inline Result Ufm01_CheckValueCrcOneWire( uint8_t* measurement, uint8_t measurementCrc)

@@ -23,17 +23,13 @@ public:
     bool        isConnected();                                          // Checks if the read firmware version is plausible; returns true, if so.
 
 public:
-    void enableDebugging(Stream& debugStream);                          // Enables the debug log. The output is written to the given debugStream
-    void disableDebugging();                                            // Stops the debug log if enabled. Does nothing otherwise.
-
-public:
     inline void     clear();                                            // Clears IO buffers of the Stream device
     inline void     reset();                                            // Resets the UFM01 and resets all internal variables
     inline Result   update();                                           // Reads measurement data; Automaticaly calls "RequestMeasurement" if in passive mode;
     
 public:
     inline bool     setOperatingMode(const Ufm01_OperatingMode mode);                                               // Toggle between active and passive measurement mode
-    inline Result   clearAccumulatedFlow();                                                                         // Clears the accumulated flow
+    inline bool     clearAccumulatedFlow();                                                                         // Clears the accumulated flow
     inline Result   writeConfiguration(Ufm01_Frequency acquisitionFrequencyHz, float startupFlowRateLitresPerHour); // Writes the acquisition frequency and startup flow rate into the device
 
 public:

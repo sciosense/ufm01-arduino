@@ -97,9 +97,9 @@ float UFM01::getInstantFlowLitersPerHour()
     return Ufm01_GetInstantFlowLitersPerHour(this);
 }
 
-Result UFM01::clearAccumulatedFlow()
+bool UFM01::clearAccumulatedFlow()
 {
-    return Ufm01_ClearAccumulatedFlow(this);
+    return Ufm01_ClearAccumulatedFlow(this) == RESULT_OK;
 }
 
 float UFM01::getTempKelvin()

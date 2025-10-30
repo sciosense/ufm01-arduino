@@ -23,14 +23,19 @@ void setup(void)
 
     ufm01.begin(&oneWire);
 
-    delay(1000);
+    delay(1200);
     
     while (ufm01.init() == false)
     {
         Serial.println("Error -- The UFM01 is not connected.");
         delay(1000);
     }
-    ufm01.clearAccumulatedFlow();
+    
+    while (ufm01.clearAccumulatedFlow() == false)
+    {
+        Serial.println("Trying to clear the accumulated flow");
+        delay(1000);
+    }
 }
 
 void loop(void)

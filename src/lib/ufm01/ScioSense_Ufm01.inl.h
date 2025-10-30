@@ -101,9 +101,19 @@ static inline Result Ufm01_Invoke(ScioSense_Ufm01* ufm01, Ufm01_Command command,
 {
     Result result;
 
-    memset(resultBuf, 0, sizeResponse)
-    
-    result = Ufm01_Write(ufm01, 0, (uint8_t*)command, sizeCommand);
+    if( ufm01->io.protocol == UFM01_PROTOCOL_ONE_WIRE )
+    {
+        memset(resultBuf, 0x12, sizeResponse)
+        size_t sizeData = sizeCommand - 1;
+        uint8_t address = command[0];
+        uint8_t data[sizeData];
+        memcpy(data, (command+1), sizeData);
+        result = Ufm01_Write(ufm01, address, data, sizeData);
+    }
+    else
+    {
+        result = Ufm01_Write(ufm01, 0, (uint8_t*)command, sizeCommand);
+    }
     
     if (result == RESULT_OK)
     {

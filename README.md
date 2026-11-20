@@ -36,22 +36,21 @@ Include Library > Manage Libraries...)
 ### General
 Please make sure that you use the correct supply voltage: The UFM-01 runs at VDD = 5V.
 
-### Example with ESP32 or Arduino Mega (UART)
-This example shows how to wire an ESP32 with a UFM-01 to communicate through UART. For other platforms a hardware UART port has to be used. The SoftwareSerial library does not support Even data parity and therefore cannot be used with the UFM-01.
+### Example with Arduino Mega (UART)
+This example shows how to wire an Arduino Mega with an UFM-01 to communicate through UART. For using an ESP32, level shifting from 3V3 to 5V must be implemented on the Rx and Tx lines. A hardware UART port is required on the board because the SoftwareSerial library does not support Even data parity and therefore cannot be used with the UFM-01.
 
-|  UFM-01   | ESP32 | Arduino Mega |
-|:---------:|:-----:|:------------:|
-|  One-Wire |  -    |      -       |
-|  VCC      |  5V   |      5V      |
-|  GND      |  GND  |      GND     |
-|  UART_RX  |  17   |      16      |
-|  UART_TX  |  16   |      17      |
+|  UFM-01   | Arduino Mega |
+|:---------:|:------------:|
+|  One-Wire |      -       |
+|  VCC      |      5V      |
+|  GND      |      GND     |
+|  UART_RX  |      16      |
+|  UART_TX  |      17      |
 
-<img src="images/UFM-01_ESP32_UART.png" width="1000">
 <img src="images/UFM-01_ATMEGA_UART.png" width="1000">
 
 ### Example with ESP32 or Arduino Mega (one wire)
-This example shows how to wire an ESP32 with a UFM-01 to communicate through One Wire. A pull-up of 4.7kΩ must be connected to 3.3V for the ESP32, for other platforms it must be connected to the supply voltage of the micro-controller. The library works with [Paul Stoffregen's OneWire library (v>=2.3.8)](https://github.com/PaulStoffregen/OneWire), which is installed automatically if the UFM-01 library was downloaded through the Arduino IDE.
+This example shows how to wire an ESP32 with an UFM-01 to communicate through One Wire. A pull-up of 4.7kΩ must be connected to 3.3V for the ESP32, for other platforms it must be connected to the supply voltage of the micro-controller. The library works with [Paul Stoffregen's OneWire library (v>=2.3.8)](https://github.com/PaulStoffregen/OneWire), which is installed automatically if the UFM-01 library was downloaded through the Arduino IDE.
 
 |  UFM-01   | ESP32 | Arduino Mega |
 |:---------:|:-----:|:------------:|
